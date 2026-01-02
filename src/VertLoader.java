@@ -3,7 +3,7 @@ import java.util.*;
 
 public class VertLoader {
 
-    // 返り値：components -> each component is List<Vec2>
+    // Return value ：components -> each component is List<Vec2>
     public static List<List<Vec2>> load(String path) throws IOException {
         try (Scanner sc = new Scanner(new File(path))) {
             int numComponents = sc.nextInt();

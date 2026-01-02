@@ -35,7 +35,7 @@ public class DifferentialGeometry {
         return N;
     }
 
-    // 曲率（符号なし）: |p_{i+1} - 2p_i + p_{i-1}| / |p_{i+1}-p_i|^2
+    // Curvature : |p_{i+1} - 2p_i + p_{i-1}| / |p_{i+1}-p_i|^2
     public static double[] curvature(List<Vec2> comp) {
         int n = comp.size();
         double[] k = new double[n];
@@ -59,7 +59,7 @@ public class DifferentialGeometry {
     int n = comp.size();
     Vec2[] cv = new Vec2[n];
 
-    // 平均エッジ長 h を作る（不均一対策）
+    // average edge length h 
     double sum = 0.0;
     for (int i = 0; i < n; i++) {
         Vec2 a = comp.get(i);

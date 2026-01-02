@@ -6,23 +6,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CurvePanel extends JPanel {
-    // 曲率流で更新するのでコピーして保持
+
     private final List<List<Vec2>> components;
 
-    // 表示切替
+    // Show switching
     private boolean showTangents = true;
     private boolean showNormals = true;
     private boolean showCurvature = true;
-    private boolean showPoints = true; // ★追加：点表示
+    private boolean showPoints = true; 
 
-    // 曲率流
+    // Curvature flow
     private Timer timer;
     private boolean running = false;
-    private double dt = 0.0005;       // 安定寄り
+    private double dt = 0.0005;       
     private double flowScale = 1.0;
 
     public CurvePanel(List<List<Vec2>> inputComponents) {
-        // 深いコピー
+        
         this.components = new ArrayList<>();
         for (var comp : inputComponents) {
             var copy = new ArrayList<Vec2>(comp.size());
@@ -33,7 +33,7 @@ public class CurvePanel extends JPanel {
         setBackground(Color.WHITE);
         setFocusable(true);
 
-        // キー操作
+        // Key command
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -50,7 +50,7 @@ public class CurvePanel extends JPanel {
                 } else if (code == KeyEvent.VK_K) {
                     showCurvature = !showCurvature;
                     repaint();
-                } else if (code == KeyEvent.VK_P) { // ★追加：点表示切替
+                } else if (code == KeyEvent.VK_P) { 
                     showPoints = !showPoints;
                     repaint();
                 } else if (code == KeyEvent.VK_A) {
@@ -64,7 +64,7 @@ public class CurvePanel extends JPanel {
             }
         });
 
-        timer = new Timer(33, e -> { // 約30fps
+        timer = new Timer(33, e -> { 
             stepCurvatureFlow();
             repaint();
         });
@@ -73,7 +73,7 @@ public class CurvePanel extends JPanel {
     @Override
     public void addNotify() {
         super.addNotify();
-        requestFocusInWindow(); // ウィンドウ表示後にフォーカス
+        requestFocusInWindow(); 
     }
 
     @Override
@@ -83,7 +83,7 @@ public class CurvePanel extends JPanel {
 
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // --- バウンディングボックス ---
+        
         double minX = Double.POSITIVE_INFINITY, minY = Double.POSITIVE_INFINITY;
         double maxX = Double.NEGATIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
         for (var comp : components) {
@@ -96,7 +96,7 @@ public class CurvePanel extends JPanel {
         double w = Math.max(1e-9, maxX - minX);
         double h = Math.max(1e-9, maxY - minY);
 
-        // データ座標系の余白
+        // Data coordinate margins
         double margin = 0.05 * Math.max(w, h);
         minX -= margin; maxX += margin;
         minY -= margin; maxY += margin;
@@ -108,27 +108,26 @@ public class CurvePanel extends JPanel {
         double sy = (getHeight() - 2.0 * padPx) / h;
         double s = Math.min(sx, sy);
 
-        // --- 座標変換（y反転） ---
+        // Coordinate convert y
         AffineTransform at = new AffineTransform();
         at.translate(padPx, getHeight() - padPx);
         at.scale(s, -s);
         at.translate(-minX, -minY);
         g2.transform(at);
 
-        // ピクセル基準（スケール補正）
-        float lineWidthData = (float) (2.0 / s); // 2px相当
-        double pointRadiusData = 4.0 / s;        // 半径4px相当
-        double arrowLenData = 20.0 / s;          // 20px相当
+        // Scale collection
+        float lineWidthData = (float) (2.0 / s); // 2px
+        double pointRadiusData = 4.0 / s;        // Radius 4px
+        double arrowLenData = 20.0 / s;          // 20px
         g2.setStroke(new BasicStroke(lineWidthData));
 
-        // 曲率矢印のスケール（見た目用）
         double kArrowScale = 30.0 / s;
 
-        // --- 描画 ---
+        // Visualize
         for (var comp : components) {
             int n = comp.size();
 
-            // 曲線（エッジ）
+            // Curve edge
             g2.setColor(Color.BLACK);
             for (int i = 0; i < n; i++) {
                 Vec2 a = comp.get(i);
@@ -136,7 +135,7 @@ public class CurvePanel extends JPanel {
                 g2.draw(new Line2D.Double(a.x, a.y, b.x, b.y));
             }
 
-            // 点（切替可能）
+            // point
             if (showPoints) {
                 for (var p : comp) {
                     double r = pointRadiusData;
@@ -144,12 +143,12 @@ public class CurvePanel extends JPanel {
                 }
             }
 
-            // 微分量
+            // differential amount
             List<Vec2> T = DifferentialGeometry.unitTangents(comp);
             List<Vec2> N = DifferentialGeometry.unitNormalsFromTangents(T);
             double[] kappa = DifferentialGeometry.curvature(comp);
 
-            // 接線（赤）
+            // tangent vector
             if (showTangents) {
                 g2.setColor(Color.RED);
                 for (int i = 0; i < n; i++) {
@@ -159,7 +158,7 @@ public class CurvePanel extends JPanel {
                 }
             }
 
-            // 法線（青）
+            // normal vector
             if (showNormals) {
                 g2.setColor(Color.BLUE);
                 for (int i = 0; i < n; i++) {
@@ -169,7 +168,7 @@ public class CurvePanel extends JPanel {
                 }
             }
 
-            // 曲率（緑）：表示は法線方向に κ 比例（見た目用）
+            // curvature
             if (showCurvature) {
                 g2.setColor(new Color(0, 140, 0));
                 for (int i = 0; i < n; i++) {
@@ -183,7 +182,7 @@ public class CurvePanel extends JPanel {
         }
     }
 
-    // 矢印描画（データ座標系）
+    // show allows
     private void drawArrow(Graphics2D g2, Vec2 from, Vec2 to, float headWidthData) {
         g2.draw(new Line2D.Double(from.x, from.y, to.x, to.y));
 
@@ -206,16 +205,16 @@ public class CurvePanel extends JPanel {
         g2.fill(tri);
     }
 
-    // Spaceで開始/停止
+    // Space start/stop
     private void toggleFlow() {
         running = !running;
         if (running) timer.start();
         else timer.stop();
     }
 
-    // ★曲率流（課題どおり κ と n を使う）＋ h^2 スケール補正で「1点だけ動く」見え方を改善
+    // curvature flow
     private void stepCurvatureFlow() {
-        int subSteps = 5;          // なめらかさ＆安定性
+        int subSteps = 5;          
         double subDt = dt / subSteps;
 
         for (int step = 0; step < subSteps; step++) {
@@ -227,7 +226,7 @@ public class CurvePanel extends JPanel {
                 List<Vec2> N = DifferentialGeometry.unitNormalsFromTangents(T);
                 double[] kappa = DifferentialGeometry.curvature(comp);
 
-                // ★スケール補正：平均エッジ長 h による正規化（key.vert 対策）
+                // Scale correction: normalization by the average edge length h
                 double h = DifferentialGeometry.meanEdgeLength(comp);
                 double scale = h * h;
 
@@ -239,7 +238,7 @@ public class CurvePanel extends JPanel {
 
                     Vec2 delta = nn.mul(flowScale * subDt * scale * kk);
 
-                    // 暴れ対策（必要なら調整）
+                    
                     double maxMove = 0.2;
                     double dlen = delta.norm();
                     if (dlen > maxMove) delta = delta.mul(maxMove / dlen);
